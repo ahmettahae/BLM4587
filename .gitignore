@@ -1,0 +1,22 @@
+# Gizli bilgiler
+.env
+*.env
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Flutter / Dart
+mobile/.dart_tool/
+mobile/build/
+mobile/.flutter-plugins*
+mobile/.packages
+
+# Editör ve işletim sistemi
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
