@@ -3,8 +3,11 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.db import get_db
+from app.routers import admin, auth
 
-app = FastAPI(title="Kitaplığım API", version="0.1.0")
+app = FastAPI(title="Kitaplığım API", version="0.2.0")
+app.include_router(auth.router)
+app.include_router(admin.router)
 
 
 @app.get("/health", tags=["sistem"])

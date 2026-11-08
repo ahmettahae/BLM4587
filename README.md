@@ -3,7 +3,7 @@
 BLM4587 iOS ile Mobil Uygulama Geliştirme I (Flutter) dönem projesi. Kişisel kitap koleksiyonunu kataloglayan mobil uygulama.
 
 - `api/`: FastAPI Web API (Python), PostgreSQL, SQLAlchemy ve Alembic
-- `mobile/`: Flutter mobil uygulaması (ikinci haftada eklenecek)
+- `mobile/`: Flutter mobil uygulaması (Android hedefli)
 
 Grup üyeleri: Ahmet Taha Erol (`ahmettahae`), Semih Berkan Okutan (`semihberkanokutan`).
 
@@ -23,16 +23,24 @@ Gerekenler: Python 3.12 ve PostgreSQL 18 (bu sürümlerle geliştirildi ve denen
    .venv\Scripts\activate
    pip install -r requirements.txt
    ```
-3. `.env.example` dosyasını `.env` olarak kopyala ve `DATABASE_URL` içindeki şifreyi kendi PostgreSQL şifrenle değiştir. `.env` depoya girmez.
+3. `.env.example` dosyasını `.env` olarak kopyala; `DATABASE_URL` içindeki şifreyi kendi PostgreSQL şifrenle, `JWT_SECRET` değerini de rastgele uzun bir değerle değiştir (üretmek için dosyadaki komutu çalıştır). `.env` depoya girmez.
 4. Tabloları oluştur (migration):
    ```
    alembic upgrade head
    ```
-5. API'yi başlat:
+5. API'yi başlat (`--host 0.0.0.0` emülatörün ve telefonun bilgisayara ulaşabilmesi için):
    ```
-   uvicorn app.main:app --reload
+   uvicorn app.main:app --reload --host 0.0.0.0
    ```
    Swagger belgesi: http://127.0.0.1:8000/docs, sağlık kontrolü: http://127.0.0.1:8000/health
+6. İlk yöneticiyi oluştur: önce uygulamadan ya da Swagger'dan `POST /auth/register` ile kayıt ol, sonra:
+   ```
+   python -m app.cli yonetici-yap kisi@ornek.com
+   ```
+   (Kayıt olan herkes `user` rolü alır; yönetici yalnızca bu komutla atanır.)
+
+### Kimlik uçları
+`POST /auth/register`, `POST /auth/login` (form: `username`=e-posta, `password`; JWT döner), `GET /me`, `GET /admin/ping` (yalnız yönetici). Swagger'da "Authorize" düğmesiyle giriş yapılabilir.
 
 Testler (PostgreSQL açık ve `.env` dolu olmalı): `pytest`
 
@@ -43,4 +51,18 @@ Modeller (`api/app/models.py`) değişince: `alembic revision --autogenerate -m 
 `users`, `categories` (yönetici yönetir), `shelves`, `books`, `loans`. Bire-çok ilişkiler: kullanıcı→kitap, kullanıcı→raf, kategori→kitap, raf→kitap, kitap→ödünç.
 
 ## Mobil uygulama kurulumu
-Hafta 2'de eklenecek (Flutter sürümü, `flutter pub get`, `flutter run`, API adresi ayarı).
+Gerekenler: Flutter 3.47 (Dart 3.x ile bu sürümle geliştirildi), Android SDK ve bir emülatör ya da USB hata ayıklaması açık Android telefon. Projeyi Türkçe karakter içermeyen bir klasörde tut (ör. `C:\dev\projeler\kitapligim`).
+
+```
+cd mobile
+flutter pub get
+flutter run
+```
+
+**API adresi:** Varsayılan `http://10.0.2.2:8000` (Android emülatöründe bilgisayarın localhost'u). Gerçek telefonda bilgisayarın yerel ağ adresini ver; telefon ve bilgisayar aynı Wi-Fi'de olmalı ve güvenlik duvarı 8000 numaralı bağlantı noktasına izin vermeli:
+```
+flutter run --dart-define=API_URL=http://192.168.1.20:8000
+```
+Testler: `flutter test`, kod denetimi: `flutter analyze`.
+
+> Geliştirme sürümü şifresiz `http` kullanır (`usesCleartextTraffic`). Yayın sürümünde https'e geçilip bu ayar kaldırılmalı.
