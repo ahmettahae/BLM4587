@@ -34,4 +34,34 @@ void main() {
       expect(Dogrulama.ad('Ayşe'), isNull);
     });
   });
+
+  group('kitap', () {
+    test('başlık ve yazar zorunlu, 255 karakter sınırı var', () {
+      expect(KitapDogrulama.baslik('  '), 'Başlık gerekli');
+      expect(KitapDogrulama.yazar(null), 'Yazar gerekli');
+      expect(KitapDogrulama.baslik('a' * 256), isNotNull);
+      expect(KitapDogrulama.baslik('Tutunamayanlar'), isNull);
+    });
+
+    test('ISBN 10 (X dahil) ya da 13 hane; tire ve boşluk atılır', () {
+      expect(KitapDogrulama.isbn(''), isNull);
+      expect(KitapDogrulama.isbn('978-975-470-090-5'), isNull);
+      expect(KitapDogrulama.isbn('0 8044 2957 x'), isNull);
+      expect(KitapDogrulama.isbn('12345'), isNotNull);
+      expect(KitapDogrulama.isbn('97897547009X5'), isNotNull);
+      expect(KitapDogrulama.isbnTemizle('0-8044-2957-x'), '080442957X');
+      expect(KitapDogrulama.isbnTemizle('  '), isNull);
+    });
+
+    test('yıl gelecekte olamaz, sayfa 1-50000', () {
+      final simdi = DateTime(2026, 11, 13);
+      expect(KitapDogrulama.yil('', simdi: simdi), isNull);
+      expect(KitapDogrulama.yil('2027', simdi: simdi), isNull);
+      expect(KitapDogrulama.yil('2028', simdi: simdi), isNotNull);
+      expect(KitapDogrulama.yil('0', simdi: simdi), isNotNull);
+      expect(KitapDogrulama.sayfa('0'), isNotNull);
+      expect(KitapDogrulama.sayfa('50001'), isNotNull);
+      expect(KitapDogrulama.sayfa('724'), isNull);
+    });
+  });
 }

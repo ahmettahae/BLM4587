@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../auth/auth_controller.dart';
+import '../books/kitap.dart';
+import '../books/kitaplar_controller.dart';
 
-/// Giriş sonrası ana sayfa. Kitap listesi 3. haftada buraya gelecek;
-/// şimdilik oturumu ve rolü gösterir, yönetici için ayrı bir bölüm açar.
+/// Giriş sonrası ana sayfa: selam, yönetici bölümü (yalnız yönetici) ve kitap listesi.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final kullanici = ref.watch(authControllerProvider).kullanici;
+    final kitaplar = ref.watch(kitaplarProvider);
     final tema = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
@@ -24,35 +27,115 @@ class HomeScreen extends ConsumerWidget {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        key: const Key('kitap_ekle_buton'),
+        onPressed: () => context.push('/kitap/yeni'),
+        icon: const Icon(Icons.add),
+        label: const Text('Kitap ekle'),
+      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 600),
-          child: ListView(
-            padding: const EdgeInsets.all(24),
-            children: [
-              Text('Merhaba ${kullanici?.ad ?? ''}', style: tema.textTheme.headlineSmall),
-              const SizedBox(height: 4),
-              Text(kullanici?.email ?? '', style: tema.textTheme.bodyMedium),
-              const SizedBox(height: 16),
-              Card(
-                child: ListTile(
-                  leading: const Icon(Icons.menu_book_outlined),
-                  title: const Text('Kitaplarım'),
-                  subtitle: const Text('Kitap listesi 3. haftada eklenecek'),
-                ),
-              ),
-              if (kullanici?.yoneticiMi ?? false)
-                Card(
-                  key: const Key('yonetici_karti'),
-                  child: ListTile(
-                    leading: const Icon(Icons.admin_panel_settings_outlined),
-                    title: const Text('Yönetim'),
-                    subtitle: const Text('Kategori yönetimi 4. haftada eklenecek'),
+          child: RefreshIndicator(
+            onRefresh: () => ref.read(kitaplarProvider.notifier).yenile(),
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+              children: [
+                Text('Merhaba ${kullanici?.ad ?? ''}', style: tema.textTheme.headlineSmall),
+                const SizedBox(height: 4),
+                Text(kullanici?.email ?? '', style: tema.textTheme.bodyMedium),
+                const SizedBox(height: 12),
+                if (kullanici?.yoneticiMi ?? false)
+                  const Card(
+                    key: Key('yonetici_karti'),
+                    child: ListTile(
+                      leading: Icon(Icons.admin_panel_settings_outlined),
+                      title: Text('Yönetim'),
+                      subtitle: Text('Kategori yönetimi 4. haftada eklenecek'),
+                    ),
                   ),
+                const SizedBox(height: 8),
+                Text('Kitaplarım', style: tema.textTheme.titleMedium),
+                const SizedBox(height: 8),
+                ...kitaplar.when(
+                  loading: () => const [
+                    Padding(padding: EdgeInsets.all(32), child: Center(child: CircularProgressIndicator())),
+                  ],
+                  error: (e, _) => [
+                    _BosDurum(
+                      key: const Key('kitap_liste_hata'),
+                      ikon: Icons.cloud_off_outlined,
+                      mesaj: '$e',
+                      eylem: TextButton(
+                        onPressed: () => ref.read(kitaplarProvider.notifier).yenile(),
+                        child: const Text('Tekrar dene'),
+                      ),
+                    ),
+                  ],
+                  data: (liste) => liste.isEmpty
+                      ? const [
+                          _BosDurum(
+                            key: Key('kitap_liste_bos'),
+                            ikon: Icons.menu_book_outlined,
+                            mesaj: 'Henüz kitap yok. "Kitap ekle" ile ilk kitabını ekle.',
+                          ),
+                        ]
+                      : [for (final k in liste) _KitapKarti(kitap: k)],
                 ),
-            ],
+              ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _KitapKarti extends StatelessWidget {
+  const _KitapKarti({required this.kitap});
+
+  final Kitap kitap;
+
+  IconData get _ikon => switch (kitap.durum) {
+        KitapDurumu.okunacak => Icons.bookmark_border,
+        KitapDurumu.okunuyor => Icons.auto_stories_outlined,
+        KitapDurumu.okundu => Icons.check_circle_outline,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      key: Key('kitap_${kitap.id}'),
+      child: ListTile(
+        leading: Icon(_ikon),
+        title: Text(kitap.baslik, maxLines: 2, overflow: TextOverflow.ellipsis),
+        subtitle: Text(kitap.yazar, maxLines: 1, overflow: TextOverflow.ellipsis),
+        trailing: Text(kitap.durum.etiket, style: Theme.of(context).textTheme.labelMedium),
+        onTap: () => context.push('/kitap/${kitap.id}'),
+      ),
+    );
+  }
+}
+
+class _BosDurum extends StatelessWidget {
+  const _BosDurum({super.key, required this.ikon, required this.mesaj, this.eylem});
+
+  final IconData ikon;
+  final String mesaj;
+  final Widget? eylem;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 32),
+      child: Column(
+        children: [
+          Icon(ikon, size: 48, color: Theme.of(context).colorScheme.outline),
+          const SizedBox(height: 12),
+          Text(mesaj, textAlign: TextAlign.center),
+          ?eylem,
+        ],
       ),
     );
   }

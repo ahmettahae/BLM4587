@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../features/auth/auth_controller.dart';
 import '../features/auth/giris_screen.dart';
 import '../features/auth/kayit_screen.dart';
+import '../features/books/kitap_detay_screen.dart';
+import '../features/books/kitap_form_screen.dart';
 import '../features/home/home_screen.dart';
 
 const _herkeseAcik = {'/giris', '/kayit'};
@@ -31,7 +33,23 @@ final routerProvider = Provider<GoRouter>((ref) {
       }
     },
     routes: [
-      GoRoute(path: '/', builder: (_, _) => const HomeScreen()),
+      GoRoute(
+        path: '/',
+        builder: (_, _) => const HomeScreen(),
+        routes: [
+          GoRoute(path: 'kitap/yeni', builder: (_, _) => const KitapFormScreen()),
+          GoRoute(
+            path: 'kitap/:id',
+            builder: (_, state) => KitapDetayScreen(kitapId: int.parse(state.pathParameters['id']!)),
+            routes: [
+              GoRoute(
+                path: 'duzenle',
+                builder: (_, state) => KitapFormScreen(kitapId: int.parse(state.pathParameters['id']!)),
+              ),
+            ],
+          ),
+        ],
+      ),
       GoRoute(path: '/giris', builder: (_, _) => const GirisScreen()),
       GoRoute(path: '/kayit', builder: (_, _) => const KayitScreen()),
       GoRoute(

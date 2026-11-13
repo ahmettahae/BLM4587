@@ -42,6 +42,11 @@ Gerekenler: Python 3.12 ve PostgreSQL 18 (bu sürümlerle geliştirildi ve denen
 ### Kimlik uçları
 `POST /auth/register`, `POST /auth/login` (form: `username`=e-posta, `password`; JWT döner), `GET /me`, `GET /admin/ping` (yalnız yönetici). Swagger'da "Authorize" düğmesiyle giriş yapılabilir.
 
+### Kitap uçları (giriş gerekir)
+`GET /books` (kendi kitapların, en yeni başta), `POST /books`, `GET /books/{id}`, `PUT /books/{id}` (tüm alanları yeniden yazar), `DELETE /books/{id}`. Her kullanıcı yalnız kendi kitaplarını görür; başkasının kitabı `404` döner.
+
+Alanlar: `title` ve `author` zorunlu; `isbn` (10 ya da 13 hane, tire ve boşluklar atılır), `publisher`, `year` (gelecek yıldan büyük olamaz), `pages` (1-50000), `note` (en fazla 2000 karakter), `status` (`okunacak`, `okunuyor`, `okundu`), `rating` (1-5), `category_id`, `shelf_id` (kendi rafın olmalı).
+
 Testler (PostgreSQL açık ve `.env` dolu olmalı): `pytest`
 
 ### Yeni migration oluşturma

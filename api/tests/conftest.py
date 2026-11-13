@@ -59,3 +59,15 @@ def yonetici_yap():
             db.commit()
 
     return _yap
+
+
+@pytest.fixture
+def oturum(kayit_ol, giris_yap):
+    """Yeni kullanıcı kaydeder, giriş yapar; Authorization başlığını döner."""
+
+    def _oturum():
+        kullanici, sifre = kayit_ol()
+        token = giris_yap(kullanici["email"], sifre).json()["access_token"]
+        return {"Authorization": f"Bearer {token}"}
+
+    return _oturum

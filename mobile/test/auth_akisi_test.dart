@@ -6,6 +6,9 @@ import 'package:kitapligim/core/api_client.dart';
 import 'package:kitapligim/core/token_store.dart';
 import 'package:kitapligim/features/auth/auth_repository.dart';
 import 'package:kitapligim/features/auth/kullanici.dart';
+import 'package:kitapligim/features/books/kitap_repository.dart';
+
+import 'sahte_kitap_repository.dart';
 
 /// Ağa çıkmayan sahte kimlik katmanı: yalnızca kayıtlı iki kullanıcıyı tanır.
 class SahteAuthRepository implements AuthRepository {
@@ -36,6 +39,7 @@ Future<SahteAuthRepository> uygulamayiAc(WidgetTester tester) async {
       overrides: [
         authRepositoryProvider.overrideWithValue(sahte),
         tokenStoreProvider.overrideWithValue(BellekTokenStore()),
+        kitapRepositoryProvider.overrideWithValue(SahteKitapRepository()),
       ],
       child: const KitapligimApp(),
     ),
