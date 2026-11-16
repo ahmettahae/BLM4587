@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../auth/auth_controller.dart';
 import '../books/kitap.dart';
 import '../books/kitaplar_controller.dart';
+import '../categories/kategori.dart';
+import '../categories/kategoriler_controller.dart';
 
 /// Giriş sonrası ana sayfa: selam, yönetici bölümü (yalnız yönetici) ve kitap listesi.
 class HomeScreen extends ConsumerWidget {
@@ -14,6 +16,7 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final kullanici = ref.watch(authControllerProvider).kullanici;
     final kitaplar = ref.watch(kitaplarProvider);
+    final kategoriler = ref.watch(kategorilerProvider).value;
     final tema = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
@@ -47,12 +50,14 @@ class HomeScreen extends ConsumerWidget {
                 Text(kullanici?.email ?? '', style: tema.textTheme.bodyMedium),
                 const SizedBox(height: 12),
                 if (kullanici?.yoneticiMi ?? false)
-                  const Card(
-                    key: Key('yonetici_karti'),
+                  Card(
+                    key: const Key('yonetici_karti'),
                     child: ListTile(
-                      leading: Icon(Icons.admin_panel_settings_outlined),
-                      title: Text('Yönetim'),
-                      subtitle: Text('Kategori yönetimi 4. haftada eklenecek'),
+                      leading: const Icon(Icons.admin_panel_settings_outlined),
+                      title: const Text('Yönetim'),
+                      subtitle: const Text('Kategorileri yönet'),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.push('/yonetim/kategoriler'),
                     ),
                   ),
                 const SizedBox(height: 8),
@@ -81,7 +86,7 @@ class HomeScreen extends ConsumerWidget {
                             mesaj: 'Henüz kitap yok. "Kitap ekle" ile ilk kitabını ekle.',
                           ),
                         ]
-                      : [for (final k in liste) _KitapKarti(kitap: k)],
+                      : [for (final k in liste) _KitapKarti(kitap: k, kategori: kategoriAdi(kategoriler, k.kategoriId))],
                 ),
               ],
             ),
@@ -93,9 +98,10 @@ class HomeScreen extends ConsumerWidget {
 }
 
 class _KitapKarti extends StatelessWidget {
-  const _KitapKarti({required this.kitap});
+  const _KitapKarti({required this.kitap, this.kategori});
 
   final Kitap kitap;
+  final String? kategori;
 
   IconData get _ikon => switch (kitap.durum) {
         KitapDurumu.okunacak => Icons.bookmark_border,
@@ -110,7 +116,11 @@ class _KitapKarti extends StatelessWidget {
       child: ListTile(
         leading: Icon(_ikon),
         title: Text(kitap.baslik, maxLines: 2, overflow: TextOverflow.ellipsis),
-        subtitle: Text(kitap.yazar, maxLines: 1, overflow: TextOverflow.ellipsis),
+        subtitle: Text(
+          kategori == null ? kitap.yazar : '${kitap.yazar} · $kategori',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         trailing: Text(kitap.durum.etiket, style: Theme.of(context).textTheme.labelMedium),
         onTap: () => context.push('/kitap/${kitap.id}'),
       ),

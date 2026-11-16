@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/api_client.dart';
+import '../categories/kategori.dart';
+import '../categories/kategoriler_controller.dart';
 import 'kitap.dart';
 import 'kitaplar_controller.dart';
 import 'puan_secici.dart';
@@ -62,16 +64,17 @@ class KitapDetayScreen extends ConsumerWidget {
       body: durum.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Padding(padding: const EdgeInsets.all(24), child: Text('$e'))),
-        data: (k) => _Ayrinti(kitap: k),
+        data: (k) => _Ayrinti(kitap: k, kategori: kategoriAdi(ref.watch(kategorilerProvider).value, k.kategoriId)),
       ),
     );
   }
 }
 
 class _Ayrinti extends StatelessWidget {
-  const _Ayrinti({required this.kitap});
+  const _Ayrinti({required this.kitap, this.kategori});
 
   final Kitap kitap;
+  final String? kategori;
 
   @override
   Widget build(BuildContext context) {
@@ -97,6 +100,12 @@ class _Ayrinti extends StatelessWidget {
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Chip(label: Text(kitap.durum.etiket)),
+                if (kategori != null)
+                  Chip(
+                    key: const Key('kitap_kategori_etiketi'),
+                    avatar: const Icon(Icons.label_outline, size: 18),
+                    label: Text(kategori!),
+                  ),
                 if (kitap.puan != null) PuanSecici(puan: kitap.puan, boyut: 20),
               ],
             ),

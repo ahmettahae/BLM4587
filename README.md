@@ -47,6 +47,9 @@ Gerekenler: Python 3.12 ve PostgreSQL 18 (bu sürümlerle geliştirildi ve denen
 
 Alanlar: `title` ve `author` zorunlu; `isbn` (10 ya da 13 hane, tire ve boşluklar atılır), `publisher`, `year` (gelecek yıldan büyük olamaz), `pages` (1-50000), `note` (en fazla 2000 karakter), `status` (`okunacak`, `okunuyor`, `okundu`), `rating` (1-5), `category_id`, `shelf_id` (kendi rafın olmalı).
 
+### Kategori uçları (giriş gerekir)
+`GET /categories` (herkes okur; Türkçe alfabe sırasıyla, her kategoride `book_count`), `POST /categories`, `PUT /categories/{id}`, `DELETE /categories/{id}` (yazma işlemleri yalnız **yönetici**, değilse 403). Ad zorunlu (en fazla 100 karakter) ve büyük/küçük harfe bakmadan benzersiz (aynı ad 409). Kategori silinince o kategorideki kitaplar silinmez, kategorisiz kalır. Kitap eklerken `category_id` olarak verilir.
+
 Testler (PostgreSQL açık ve `.env` dolu olmalı): `pytest`
 
 ### Yeni migration oluşturma
@@ -69,5 +72,7 @@ flutter run
 flutter run --dart-define=API_URL=http://192.168.1.20:8000
 ```
 Testler: `flutter test`, kod denetimi: `flutter analyze`.
+
+Yönetici hesabıyla giriş yapınca ana sayfada **Yönetim** kartı çıkar; kategori ekleme, düzenleme ve silme ekranı buradan açılır. Yönetici yapmak için API klasöründe `python -m app.cli yonetici-yap <e-posta>` çalıştırılır.
 
 > Geliştirme sürümü şifresiz `http` kullanır (`usesCleartextTraffic`). Yayın sürümünde https'e geçilip bu ayar kaldırılmalı.

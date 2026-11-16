@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/api_client.dart';
 import '../../core/dogrulama.dart';
+import '../categories/kategori.dart';
+import '../categories/kategoriler_controller.dart';
 import 'kitap.dart';
 import 'kitaplar_controller.dart';
 import 'puan_secici.dart';
@@ -47,6 +49,7 @@ class _KitapFormState extends ConsumerState<_KitapForm> {
   late final _not = TextEditingController(text: widget.mevcut?.not);
   late KitapDurumu _durum = widget.mevcut?.durum ?? KitapDurumu.okunacak;
   late int? _puan = widget.mevcut?.puan;
+  late int? _kategoriId = widget.mevcut?.kategoriId;
   bool _bekliyor = false;
   String? _hata;
 
@@ -81,7 +84,7 @@ class _KitapFormState extends ConsumerState<_KitapForm> {
       not: _metin(_not),
       durum: _durum,
       puan: _puan,
-      kategoriId: widget.mevcut?.kategoriId,
+      kategoriId: _kategoriId,
       rafId: widget.mevcut?.rafId,
     );
     try {
@@ -148,6 +151,8 @@ class _KitapFormState extends ConsumerState<_KitapForm> {
                     decoration: _alan('Yayınevi'),
                     validator: KitapDogrulama.yayinevi,
                   ),
+                  const SizedBox(height: 12),
+                  _KategoriAlani(secili: _kategoriId, onDegisti: (v) => setState(() => _kategoriId = v)),
                   const SizedBox(height: 12),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,6 +223,34 @@ class _KitapFormState extends ConsumerState<_KitapForm> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Kategori seçimi: "Kategorisiz" ve yöneticinin tanımladığı kategoriler.
+/// Seçili kategori listede yoksa (liste yüklenemedi) seçim kaybolmasın diye ayrı bir öğe olarak gösterilir.
+class _KategoriAlani extends ConsumerWidget {
+  const _KategoriAlani({required this.secili, required this.onDegisti});
+
+  final int? secili;
+  final ValueChanged<int?> onDegisti;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final yuklenen = ref.watch(kategorilerProvider);
+    final liste = yuklenen.value ?? const <Kategori>[];
+    final seciliListede = secili == null || liste.any((k) => k.id == secili);
+    return DropdownButtonFormField<int?>(
+      key: const Key('kitap_kategori'),
+      initialValue: secili,
+      isExpanded: true,
+      decoration: const InputDecoration(labelText: 'Kategori', border: OutlineInputBorder()),
+      items: [
+        const DropdownMenuItem<int?>(value: null, child: Text('Kategorisiz')),
+        for (final k in liste) DropdownMenuItem<int?>(value: k.id, child: Text(k.ad, overflow: TextOverflow.ellipsis)),
+        if (!seciliListede) DropdownMenuItem<int?>(value: secili, child: const Text('Bilinmeyen kategori')),
+      ],
+      onChanged: yuklenen.isLoading ? null : onDegisti,
     );
   }
 }

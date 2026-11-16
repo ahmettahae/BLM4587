@@ -117,3 +117,33 @@ class BookOut(BaseModel):
     shelf_id: int | None
     cover_path: str | None
     created_at: datetime
+
+
+# ---------- Kategoriler (Hafta 4) ----------
+
+
+class CategoryIn(BaseModel):
+    """Kategori ekleme ve güncelleme; yalnızca yönetici gönderebilir."""
+
+    name: str = Field(max_length=100)
+    description: str | None = Field(default=None, max_length=1000)
+
+    @field_validator("name")
+    @classmethod
+    def ad_bos_olmasin(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("Ad boş olamaz")
+        return v
+
+    @field_validator("description")
+    @classmethod
+    def aciklama_bos_ise_none(cls, v: str | None) -> str | None:
+        return _bos_ise_none(v)
+
+
+class CategoryOut(BaseModel):
+    id: int
+    name: str
+    description: str | None
+    book_count: int = 0

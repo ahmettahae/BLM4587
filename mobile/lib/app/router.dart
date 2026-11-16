@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../features/auth/auth_controller.dart';
 import '../features/auth/giris_screen.dart';
 import '../features/auth/kayit_screen.dart';
+import '../features/categories/kategori_yonetim_screen.dart';
 import '../features/books/kitap_detay_screen.dart';
 import '../features/books/kitap_form_screen.dart';
 import '../features/home/home_screen.dart';
@@ -29,7 +30,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         case OturumDurumu.girisYok:
           return _herkeseAcik.contains(yol) ? null : '/giris';
         case OturumDurumu.girisVar:
-          return (_herkeseAcik.contains(yol) || yol == '/yukleniyor') ? '/' : null;
+          if (_herkeseAcik.contains(yol) || yol == '/yukleniyor') return '/';
+          // Yönetim ekranları yalnız yöneticiye açık; başkası adresi yazsa bile ana sayfaya döner.
+          final yonetici = ref.read(authControllerProvider).kullanici?.yoneticiMi ?? false;
+          return (yol.startsWith('/yonetim') && !yonetici) ? '/' : null;
       }
     },
     routes: [
@@ -50,6 +54,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
+      GoRoute(path: '/yonetim/kategoriler', builder: (_, _) => const KategoriYonetimScreen()),
       GoRoute(path: '/giris', builder: (_, _) => const GirisScreen()),
       GoRoute(path: '/kayit', builder: (_, _) => const KayitScreen()),
       GoRoute(

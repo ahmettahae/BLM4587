@@ -71,3 +71,35 @@ def oturum(kayit_ol, giris_yap):
         return {"Authorization": f"Bearer {token}"}
 
     return _oturum
+
+
+KATEGORI_ONEKI = "zz-test-kat-"
+
+
+@pytest.fixture(autouse=True)
+def test_kategorilerini_temizle():
+    """Testlerin oluşturduğu kategorileri siler (önekli adlar; gerçek kategorilere dokunmaz)."""
+    yield
+    from app.models import Category
+
+    with SessionLocal() as db:
+        db.execute(delete(Category).where(Category.name.like(f"{KATEGORI_ONEKI}%")))
+        db.commit()
+
+
+@pytest.fixture
+def kategori_adi():
+    return lambda ad: f"{KATEGORI_ONEKI}{ad}"
+
+
+@pytest.fixture
+def yonetici_oturumu(kayit_ol, giris_yap, yonetici_yap):
+    """Yönetici kullanıcı oluşturur, giriş yapar; Authorization başlığını döner."""
+
+    def _oturum():
+        kullanici, sifre = kayit_ol()
+        yonetici_yap(kullanici["email"])
+        token = giris_yap(kullanici["email"], sifre).json()["access_token"]
+        return {"Authorization": f"Bearer {token}"}
+
+    return _oturum

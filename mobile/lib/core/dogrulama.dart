@@ -74,3 +74,16 @@ class KitapDogrulama {
 
   static String? not(String? deger) => (deger?.length ?? 0) > 2000 ? 'Not en fazla 2000 karakter olabilir' : null;
 }
+
+/// Kategori formu doğrulayıcıları (API'deki CategoryIn kurallarıyla aynı).
+class KategoriDogrulama {
+  static String? ad(String? deger) {
+    final v = deger?.trim() ?? '';
+    if (v.isEmpty) return 'Ad gerekli';
+    if (v.length > 100) return 'Ad en fazla 100 karakter olabilir';
+    return null;
+  }
+
+  static String? aciklama(String? deger) =>
+      (deger?.trim().length ?? 0) > 1000 ? 'Açıklama en fazla 1000 karakter olabilir' : null;
+}
