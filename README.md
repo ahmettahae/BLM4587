@@ -50,6 +50,17 @@ Alanlar: `title` ve `author` zorunlu; `isbn` (10 ya da 13 hane, tire ve boşlukl
 ### Kategori uçları (giriş gerekir)
 `GET /categories` (herkes okur; Türkçe alfabe sırasıyla, her kategoride `book_count`), `POST /categories`, `PUT /categories/{id}`, `DELETE /categories/{id}` (yazma işlemleri yalnız **yönetici**, değilse 403). Ad zorunlu (en fazla 100 karakter) ve büyük/küçük harfe bakmadan benzersiz (aynı ad 409). Kategori silinince o kategorideki kitaplar silinmez, kategorisiz kalır. Kitap eklerken `category_id` olarak verilir.
 
+### Raf uçları (giriş gerekir)
+`GET /shelves` (kendi rafların; Türkçe alfabe sırasıyla, her rafta `book_count`), `POST /shelves`, `PUT /shelves/{id}` (yeniden adlandırır), `DELETE /shelves/{id}`. Her kullanıcı yalnız kendi raflarını görür; başkasının rafı `404` döner. Ad zorunlu (en fazla 100 karakter) ve kullanıcının rafları içinde büyük/küçük harfe bakmadan benzersiz (aynı ad 409; iki kullanıcı aynı adı kullanabilir). Raf silinince raftaki kitaplar silinmez, rafsız kalır. Kitap eklerken `shelf_id` olarak verilir.
+
+### Arama ve filtre
+`GET /books` şu sorgu parametrelerini alır, verilenlerin hepsine uyan kitaplar döner:
+- `search`: başlık, yazar ya da ISBN içinde arar; Türkçe büyük/küçük harf duyarsız (`istanbul` → "İSTANBUL"). Yalnız boşluksa yok sayılır.
+- `category`, `shelf`: kategori / raf numarası. Başkasının raf numarası boş liste döner.
+- `status`: `okunacak`, `okunuyor`, `okundu` (başka değer 422).
+
+Örnek (Swagger `http://localhost:8000/docs` → `GET /books` → "Try it out"): `/books?search=atay&status=okundu`.
+
 Testler (PostgreSQL açık ve `.env` dolu olmalı): `pytest`
 
 ### Yeni migration oluşturma

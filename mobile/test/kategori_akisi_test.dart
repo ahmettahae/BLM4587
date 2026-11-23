@@ -11,10 +11,12 @@ import 'package:kitapligim/features/books/kitap.dart';
 import 'package:kitapligim/features/books/kitap_repository.dart';
 import 'package:kitapligim/features/categories/kategori.dart';
 import 'package:kitapligim/features/categories/kategori_repository.dart';
+import 'package:kitapligim/features/shelves/raf_repository.dart';
 import 'package:kitapligim/features/home/home_screen.dart';
 
 import 'sahte_kategori_repository.dart';
 import 'sahte_kitap_repository.dart';
+import 'sahte_raf_repository.dart';
 
 /// Açılışta oturumu verilen rolle geri yükleyen sahte kimlik katmanı.
 class RolluAuthRepository implements AuthRepository {
@@ -61,6 +63,7 @@ Future<Ortam> ac(
         tokenStoreProvider.overrideWithValue(depo),
         kitapRepositoryProvider.overrideWithValue(ortam.kitaplar),
         kategoriRepositoryProvider.overrideWithValue(ortam.kategoriler),
+        rafRepositoryProvider.overrideWithValue(SahteRafRepository()),
       ],
       child: const KitapligimApp(),
     ),

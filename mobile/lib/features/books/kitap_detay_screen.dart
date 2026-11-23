@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/api_client.dart';
 import '../categories/kategori.dart';
 import '../categories/kategoriler_controller.dart';
+import '../shelves/raf.dart';
+import '../shelves/raflar_controller.dart';
 import 'kitap.dart';
 import 'kitaplar_controller.dart';
 import 'puan_secici.dart';
@@ -64,17 +66,22 @@ class KitapDetayScreen extends ConsumerWidget {
       body: durum.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Padding(padding: const EdgeInsets.all(24), child: Text('$e'))),
-        data: (k) => _Ayrinti(kitap: k, kategori: kategoriAdi(ref.watch(kategorilerProvider).value, k.kategoriId)),
+        data: (k) => _Ayrinti(
+          kitap: k,
+          kategori: kategoriAdi(ref.watch(kategorilerProvider).value, k.kategoriId),
+          raf: rafAdi(ref.watch(raflarProvider).value, k.rafId),
+        ),
       ),
     );
   }
 }
 
 class _Ayrinti extends StatelessWidget {
-  const _Ayrinti({required this.kitap, this.kategori});
+  const _Ayrinti({required this.kitap, this.kategori, this.raf});
 
   final Kitap kitap;
   final String? kategori;
+  final String? raf;
 
   @override
   Widget build(BuildContext context) {
@@ -105,6 +112,12 @@ class _Ayrinti extends StatelessWidget {
                     key: const Key('kitap_kategori_etiketi'),
                     avatar: const Icon(Icons.label_outline, size: 18),
                     label: Text(kategori!),
+                  ),
+                if (raf != null)
+                  Chip(
+                    key: const Key('kitap_raf_etiketi'),
+                    avatar: const Icon(Icons.shelves, size: 18),
+                    label: Text(raf!),
                   ),
                 if (kitap.puan != null) PuanSecici(puan: kitap.puan, boyut: 20),
               ],

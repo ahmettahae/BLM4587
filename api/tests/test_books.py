@@ -108,3 +108,76 @@ def test_kategori_ve_raf_dogrulanir(client, oturum):
         with SessionLocal() as db:
             db.execute(delete(Category).where(Category.id == kategori_id))
             db.commit()
+
+
+# ---------- Arama ve filtre (Hafta 5) ----------
+
+
+def _kitap(client, baslik, **alanlar):
+    yanit = client.post("/books", json={"author": "Yazar", **alanlar}, headers=baslik)
+    assert yanit.status_code == 201, yanit.text
+    return yanit.json()
+
+
+def _ara(client, baslik, **params):
+    yanit = client.get("/books", params=params, headers=baslik)
+    assert yanit.status_code == 200, yanit.text
+    return [k["title"] for k in yanit.json()]
+
+
+def test_arama_baslik_yazar_isbn(client, oturum):
+    baslik = oturum()
+    _kitap(client, baslik, **ORNEK)
+    _kitap(client, baslik, title="Başka", author="Biri")
+    assert _ara(client, baslik, search="atay") == ["Tutunamayanlar"]
+    assert _ara(client, baslik, search="tutun") == ["Tutunamayanlar"]
+    assert _ara(client, baslik, search="9789754700905") == ["Tutunamayanlar"]
+    assert _ara(client, baslik, search="yok-boyle-kitap") == []
+
+
+def test_arama_turkce(client, oturum):
+    baslik = oturum()
+    _kitap(client, baslik, title="İSTANBUL")
+    _kitap(client, baslik, title="ışık")
+    assert _ara(client, baslik, search="istanbul") == ["İSTANBUL"]
+    assert _ara(client, baslik, search="ISIK") == []  # I -> ı, S/K aynı: "ısık" ≠ "ışık"
+    assert _ara(client, baslik, search="IŞIK") == ["ışık"]
+
+
+def test_bos_arama_hepsi(client, oturum):
+    baslik = oturum()
+    _kitap(client, baslik, title="Bir")
+    _kitap(client, baslik, title="İki")
+    assert _ara(client, baslik, search="   ") == ["İki", "Bir"]
+
+
+def test_filtreler_birlikte(client, oturum, yonetici_oturumu, kategori_adi):
+    kat = client.post("/categories", json={"name": kategori_adi("filtre")}, headers=yonetici_oturumu()).json()
+    baslik = oturum()
+    raf = client.post("/shelves", json={"name": "Salon"}, headers=baslik).json()
+    _kitap(client, baslik, title="Uyan", category_id=kat["id"], shelf_id=raf["id"], status="okundu")
+    _kitap(client, baslik, title="Durum farklı", category_id=kat["id"], shelf_id=raf["id"])
+    _kitap(client, baslik, title="Raf yok", category_id=kat["id"], status="okundu")
+    _kitap(client, baslik, title="Kategori yok", shelf_id=raf["id"], status="okundu")
+    assert _ara(client, baslik, category=kat["id"], shelf=raf["id"], status="okundu") == ["Uyan"]
+    assert _ara(client, baslik, status="okundu", search="raf") == ["Raf yok"]
+
+
+def test_baska_rafin_filtresi_bos(client, oturum):
+    a, b = oturum(), oturum()
+    raf = client.post("/shelves", json={"name": "A rafı"}, headers=a).json()
+    _kitap(client, a, title="A kitabı", shelf_id=raf["id"])
+    _kitap(client, b, title="B kitabı")
+    assert _ara(client, b, shelf=raf["id"]) == []
+
+
+def test_gecersiz_status_422(client, oturum):
+    assert client.get("/books", params={"status": "bitti"}, headers=oturum()).status_code == 422
+
+
+def test_arama_ascii_buyuk_i(client, oturum):
+    baslik = oturum()
+    _kitap(client, baslik, title="INFERNO", author="Dan Brown")
+    _kitap(client, baslik, title="Vakıf", author="Isaac Asimov")
+    assert _ara(client, baslik, search="inferno") == ["INFERNO"]
+    assert _ara(client, baslik, search="isaac") == ["Vakıf"]

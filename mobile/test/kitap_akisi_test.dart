@@ -9,9 +9,11 @@ import 'package:kitapligim/features/auth/kullanici.dart';
 import 'package:kitapligim/features/books/kitap.dart';
 import 'package:kitapligim/features/books/kitap_repository.dart';
 import 'package:kitapligim/features/categories/kategori_repository.dart';
+import 'package:kitapligim/features/shelves/raf_repository.dart';
 
 import 'sahte_kategori_repository.dart';
 import 'sahte_kitap_repository.dart';
+import 'sahte_raf_repository.dart';
 
 /// Kayıtlı anahtarla açılışta oturumu hemen geri yükleyen sahte kimlik katmanı.
 class OturumluAuthRepository implements AuthRepository {
@@ -53,6 +55,7 @@ Future<SahteKitapRepository> acik(WidgetTester tester, {List<Kitap> kitaplar = c
         tokenStoreProvider.overrideWithValue(depo),
         kitapRepositoryProvider.overrideWithValue(kitapDeposu),
         kategoriRepositoryProvider.overrideWithValue(SahteKategoriRepository()),
+        rafRepositoryProvider.overrideWithValue(SahteRafRepository()),
       ],
       child: const KitapligimApp(),
     ),

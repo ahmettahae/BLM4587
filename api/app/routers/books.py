@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.deps import get_current_user
+from app.metin import tr_esle
 from app.models import Book, Category, Shelf, User
-from app.schemas import BookIn, BookOut
+from app.schemas import BookIn, BookOut, KitapDurumu
 
 router = APIRouter(prefix="/books", tags=["kitaplar"])
 
@@ -28,10 +29,33 @@ def _iliskileri_dogrula(veri: BookIn, user: User, db: Session) -> None:
             raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="Raf bulunamadı")
 
 
+def _aramaya_uyar_mi(book: Book, aranan: str) -> bool:
+    """Başlık, yazar ya da ISBN içinde Türkçe kurala göre büyük/küçük harf duyarsız arar."""
+    return any(aranan in tr_esle(alan or "") for alan in (book.title, book.author, book.isbn))
+
+
 @router.get("", response_model=list[BookOut])
-def listele(user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> list[Book]:
-    """Giriş yapan kullanıcının kitapları, en son eklenen başta."""
-    return list(db.scalars(select(Book).where(Book.user_id == user.id).order_by(Book.created_at.desc(), Book.id.desc())))
+def listele(
+    search: str | None = Query(default=None, max_length=200, description="Başlık, yazar ya da ISBN içinde arar"),
+    category: int | None = Query(default=None, description="Kategori numarası"),
+    shelf: int | None = Query(default=None, description="Raf numarası (yalnız kendi rafların)"),
+    status_: KitapDurumu | None = Query(default=None, alias="status", description="Okuma durumu"),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[Book]:
+    """Giriş yapan kullanıcının kitapları, en son eklenen başta. Verilen filtrelerin hepsine uyanlar döner."""
+    sorgu = select(Book).where(Book.user_id == user.id)
+    if category is not None:
+        sorgu = sorgu.where(Book.category_id == category)
+    if shelf is not None:
+        sorgu = sorgu.where(Book.shelf_id == shelf)
+    if status_ is not None:
+        sorgu = sorgu.where(Book.status == status_)
+    kitaplar = list(db.scalars(sorgu.order_by(Book.created_at.desc(), Book.id.desc())))
+    aranan = tr_esle(search.strip()) if search else ""
+    if aranan:
+        kitaplar = [k for k in kitaplar if _aramaya_uyar_mi(k, aranan)]
+    return kitaplar
 
 
 @router.post("", response_model=BookOut, status_code=status.HTTP_201_CREATED)

@@ -57,8 +57,7 @@ class Kitap {
       );
 }
 
-/// Ekleme ve düzenleme formunun API'ye gönderdiği veri (id yok).
-/// Kategori ve raf formda henüz yok (M4, M5); düzenlemede mevcut değerler korunur.
+/// Ekleme ve düzenleme formunun API'ye gönderdiği veri (id yok). Kategori ve raf formda seçilir.
 class KitapGirdisi {
   const KitapGirdisi({
     required this.baslik,

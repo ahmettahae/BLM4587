@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/api_client.dart';
 import 'kitap.dart';
+import 'kitap_filtresi.dart';
 
 /// /books uçlarıyla konuşan katman. Hatalar [ApiHata] olarak fırlatılır.
 class KitapRepository {
@@ -18,8 +19,9 @@ class KitapRepository {
     }
   }
 
-  Future<List<Kitap>> listele() => _cagir(() async {
-        final yanit = await _dio.get<List<dynamic>>('/books');
+  /// Kitapları [filtre]'ye göre sunucuda süzerek getirir (boş filtre = hepsi).
+  Future<List<Kitap>> listele([KitapFiltresi filtre = const KitapFiltresi()]) => _cagir(() async {
+        final yanit = await _dio.get<List<dynamic>>('/books', queryParameters: filtre.toQuery());
         return yanit.data!.map((j) => Kitap.fromJson(j as Map<String, dynamic>)).toList();
       });
 

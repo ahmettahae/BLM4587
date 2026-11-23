@@ -87,3 +87,8 @@ class KategoriDogrulama {
   static String? aciklama(String? deger) =>
       (deger?.trim().length ?? 0) > 1000 ? 'Açıklama en fazla 1000 karakter olabilir' : null;
 }
+
+/// Raf formu doğrulayıcısı (API'deki ShelfIn kuralıyla aynı: boş olamaz, en fazla 100 karakter).
+class RafDogrulama {
+  static String? ad(String? deger) => KategoriDogrulama.ad(deger);
+}

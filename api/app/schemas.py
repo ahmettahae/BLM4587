@@ -147,3 +147,26 @@ class CategoryOut(BaseModel):
     name: str
     description: str | None
     book_count: int = 0
+
+
+# ---------- Raflar (Hafta 5) ----------
+
+
+class ShelfIn(BaseModel):
+    """Raf ekleme ve yeniden adlandırma; raf yalnızca sahibine aittir."""
+
+    name: str = Field(max_length=100)
+
+    @field_validator("name")
+    @classmethod
+    def ad_bos_olmasin(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("Ad boş olamaz")
+        return v
+
+
+class ShelfOut(BaseModel):
+    id: int
+    name: str
+    book_count: int = 0

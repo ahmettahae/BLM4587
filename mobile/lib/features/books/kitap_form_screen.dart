@@ -7,6 +7,8 @@ import '../../core/api_client.dart';
 import '../../core/dogrulama.dart';
 import '../categories/kategori.dart';
 import '../categories/kategoriler_controller.dart';
+import '../shelves/raf.dart';
+import '../shelves/raflar_controller.dart';
 import 'kitap.dart';
 import 'kitaplar_controller.dart';
 import 'puan_secici.dart';
@@ -50,6 +52,7 @@ class _KitapFormState extends ConsumerState<_KitapForm> {
   late KitapDurumu _durum = widget.mevcut?.durum ?? KitapDurumu.okunacak;
   late int? _puan = widget.mevcut?.puan;
   late int? _kategoriId = widget.mevcut?.kategoriId;
+  late int? _rafId = widget.mevcut?.rafId;
   bool _bekliyor = false;
   String? _hata;
 
@@ -85,7 +88,7 @@ class _KitapFormState extends ConsumerState<_KitapForm> {
       durum: _durum,
       puan: _puan,
       kategoriId: _kategoriId,
-      rafId: widget.mevcut?.rafId,
+      rafId: _rafId,
     );
     try {
       final denetleyici = ref.read(kitaplarProvider.notifier);
@@ -153,6 +156,8 @@ class _KitapFormState extends ConsumerState<_KitapForm> {
                   ),
                   const SizedBox(height: 12),
                   _KategoriAlani(secili: _kategoriId, onDegisti: (v) => setState(() => _kategoriId = v)),
+                  const SizedBox(height: 12),
+                  _RafAlani(secili: _rafId, onDegisti: (v) => setState(() => _rafId = v)),
                   const SizedBox(height: 12),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -249,6 +254,33 @@ class _KategoriAlani extends ConsumerWidget {
         const DropdownMenuItem<int?>(value: null, child: Text('Kategorisiz')),
         for (final k in liste) DropdownMenuItem<int?>(value: k.id, child: Text(k.ad, overflow: TextOverflow.ellipsis)),
         if (!seciliListede) DropdownMenuItem<int?>(value: secili, child: const Text('Bilinmeyen kategori')),
+      ],
+      onChanged: yuklenen.isLoading ? null : onDegisti,
+    );
+  }
+}
+
+/// Raf seçimi: "Raf yok" ve kullanıcının kendi rafları (kategori seçimiyle aynı kalıp).
+class _RafAlani extends ConsumerWidget {
+  const _RafAlani({required this.secili, required this.onDegisti});
+
+  final int? secili;
+  final ValueChanged<int?> onDegisti;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final yuklenen = ref.watch(raflarProvider);
+    final liste = yuklenen.value ?? const <Raf>[];
+    final seciliListede = secili == null || liste.any((r) => r.id == secili);
+    return DropdownButtonFormField<int?>(
+      key: const Key('raf_secici'),
+      initialValue: secili,
+      isExpanded: true,
+      decoration: const InputDecoration(labelText: 'Raf', border: OutlineInputBorder()),
+      items: [
+        const DropdownMenuItem<int?>(value: null, child: Text('Raf yok')),
+        for (final r in liste) DropdownMenuItem<int?>(value: r.id, child: Text(r.ad, overflow: TextOverflow.ellipsis)),
+        if (!seciliListede) DropdownMenuItem<int?>(value: secili, child: const Text('Bilinmeyen raf')),
       ],
       onChanged: yuklenen.isLoading ? null : onDegisti,
     );

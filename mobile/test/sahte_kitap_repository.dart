@@ -1,5 +1,6 @@
 import 'package:kitapligim/core/api_client.dart';
 import 'package:kitapligim/features/books/kitap.dart';
+import 'package:kitapligim/features/books/kitap_filtresi.dart';
 import 'package:kitapligim/features/books/kitap_repository.dart';
 
 /// Ağa çıkmayan, bellekte çalışan kitap katmanı. API gibi en yeni kitabı başa koyar.
@@ -37,8 +38,23 @@ class SahteKitapRepository implements KitapRepository {
         rafId: g.rafId,
       );
 
+  /// Son liste isteğinin filtresi (testler sunucuya ne gittiğini görsün diye).
+  KitapFiltresi? sonFiltre;
+
   @override
-  Future<List<Kitap>> listele() async => List.of(_kitaplar);
+  Future<List<Kitap>> listele([KitapFiltresi filtre = const KitapFiltresi()]) async {
+    sonFiltre = filtre;
+    final aranan = filtre.arama.trim().toLowerCase();
+    return [
+      for (final k in _kitaplar)
+        if ((filtre.durum == null || k.durum == filtre.durum) &&
+            (filtre.kategoriId == null || k.kategoriId == filtre.kategoriId) &&
+            (filtre.rafId == null || k.rafId == filtre.rafId) &&
+            (aranan.isEmpty ||
+                [k.baslik, k.yazar, k.isbn ?? ''].any((alan) => alan.toLowerCase().contains(aranan))))
+          k,
+    ];
+  }
 
   @override
   Future<Kitap> getir(int id) async =>

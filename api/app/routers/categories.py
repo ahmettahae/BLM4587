@@ -5,19 +5,11 @@ from sqlalchemy.orm import Session
 
 from app.db import get_db
 from app.deps import get_current_user, require_admin
+from app.metin import tr_sirala
 from app.models import Book, Category, User
 from app.schemas import CategoryIn, CategoryOut
 
 router = APIRouter(prefix="/categories", tags=["kategoriler"])
-
-_TR_ALFABE = "abcçdefgğhıijklmnoöprsştuüvyz"
-_TR_SIRA = {harf: i for i, harf in enumerate(_TR_ALFABE)}
-
-
-def _tr_sirala(ad: str) -> list[int]:
-    """Türkçe alfabe sırası (Ç, Ğ, İ, Ö, Ş, Ü kendi yerinde). Veritabanı sıralaması bunu bilmediği için Python'da yapılır."""
-    kucuk = ad.replace("İ", "i").replace("I", "ı").lower()
-    return [_TR_SIRA.get(h, 100 + ord(h)) for h in kucuk]
 
 
 def _cikti(db: Session, kategori: Category) -> CategoryOut:
@@ -42,7 +34,7 @@ def _bul(db: Session, kategori_id: int) -> Category:
 def listele(user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> list[CategoryOut]:
     """Tüm kategoriler (giriş yapan herkes görür), Türkçe alfabe sırasıyla; kitap sayısıyla birlikte."""
     adetler = dict(db.execute(select(Book.category_id, func.count()).group_by(Book.category_id)).all())
-    kategoriler = sorted(db.scalars(select(Category)), key=lambda c: _tr_sirala(c.name))
+    kategoriler = sorted(db.scalars(select(Category)), key=lambda c: tr_sirala(c.name))
     return [
         CategoryOut(id=c.id, name=c.name, description=c.description, book_count=adetler.get(c.id, 0))
         for c in kategoriler

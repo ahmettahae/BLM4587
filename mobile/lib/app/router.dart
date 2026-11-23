@@ -9,6 +9,7 @@ import '../features/categories/kategori_yonetim_screen.dart';
 import '../features/books/kitap_detay_screen.dart';
 import '../features/books/kitap_form_screen.dart';
 import '../features/home/home_screen.dart';
+import '../features/shelves/raflar_screen.dart';
 
 const _herkeseAcik = {'/giris', '/kayit'};
 
@@ -55,6 +56,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
       GoRoute(path: '/yonetim/kategoriler', builder: (_, _) => const KategoriYonetimScreen()),
+      GoRoute(path: '/raflar', builder: (_, _) => const RaflarScreen()),
       GoRoute(path: '/giris', builder: (_, _) => const GirisScreen()),
       GoRoute(path: '/kayit', builder: (_, _) => const KayitScreen()),
       GoRoute(

@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import '../auth/auth_controller.dart';
 import '../books/kitap.dart';
+import '../books/kitap_filtresi.dart';
 import '../books/kitaplar_controller.dart';
 import '../categories/kategori.dart';
 import '../categories/kategoriler_controller.dart';
+import 'arama_filtre.dart';
 
 /// Giriş sonrası ana sayfa: selam, yönetici bölümü (yalnız yönetici) ve kitap listesi.
 class HomeScreen extends ConsumerWidget {
@@ -17,6 +19,7 @@ class HomeScreen extends ConsumerWidget {
     final kullanici = ref.watch(authControllerProvider).kullanici;
     final kitaplar = ref.watch(kitaplarProvider);
     final kategoriler = ref.watch(kategorilerProvider).value;
+    final filtreBos = ref.watch(kitapFiltresiProvider.select((f) => f.bosMu));
     final tema = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
@@ -60,8 +63,20 @@ class HomeScreen extends ConsumerWidget {
                       onTap: () => context.push('/yonetim/kategoriler'),
                     ),
                   ),
+                Card(
+                  key: const Key('raflar_karti'),
+                  child: ListTile(
+                    leading: const Icon(Icons.shelves),
+                    title: const Text('Raflarım'),
+                    subtitle: const Text('Rafları ekle, adlandır, sil'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.push('/raflar'),
+                  ),
+                ),
                 const SizedBox(height: 8),
                 Text('Kitaplarım', style: tema.textTheme.titleMedium),
+                const SizedBox(height: 8),
+                const AramaVeFiltre(),
                 const SizedBox(height: 8),
                 ...kitaplar.when(
                   loading: () => const [
@@ -79,12 +94,18 @@ class HomeScreen extends ConsumerWidget {
                     ),
                   ],
                   data: (liste) => liste.isEmpty
-                      ? const [
-                          _BosDurum(
-                            key: Key('kitap_liste_bos'),
-                            ikon: Icons.menu_book_outlined,
-                            mesaj: 'Henüz kitap yok. "Kitap ekle" ile ilk kitabını ekle.',
-                          ),
+                      ? [
+                          filtreBos
+                              ? const _BosDurum(
+                                  key: Key('kitap_liste_bos'),
+                                  ikon: Icons.menu_book_outlined,
+                                  mesaj: 'Henüz kitap yok. "Kitap ekle" ile ilk kitabını ekle.',
+                                )
+                              : const _BosDurum(
+                                  key: Key('kitap_liste_filtre_bos'),
+                                  ikon: Icons.search_off,
+                                  mesaj: 'Bu filtreye uyan kitap yok.',
+                                ),
                         ]
                       : [for (final k in liste) _KitapKarti(kitap: k, kategori: kategoriAdi(kategoriler, k.kategoriId))],
                 ),
