@@ -8,6 +8,12 @@
 __pycache__/
 *.pyc
 .pytest_cache/
+api/logs/
+
+# Android imza anahtarı (yerelde kalır)
+mobile/android/key.properties
+*.jks
+*.keystore
 
 # Flutter / Dart
 mobile/.dart_tool/

@@ -42,7 +42,7 @@ def _kaydet(db: Session) -> None:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=_AYNI_AD)
 
 
-@router.get("", response_model=list[ShelfOut])
+@router.get("", response_model=list[ShelfOut], summary="Raflarımı listele")
 def listele(user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> list[ShelfOut]:
     """Kullanıcının rafları, Türkçe alfabe sırasıyla; her rafın kitap sayısıyla birlikte."""
     adetler = dict(
@@ -54,7 +54,7 @@ def listele(user: User = Depends(get_current_user), db: Session = Depends(get_db
     return [ShelfOut(id=r.id, name=r.name, book_count=adetler.get(r.id, 0)) for r in raflar]
 
 
-@router.post("", response_model=ShelfOut, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=ShelfOut, status_code=status.HTTP_201_CREATED, summary="Raf ekle")
 def ekle(veri: ShelfIn, user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> ShelfOut:
     if _ayni_ad_var_mi(db, user, veri.name):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=_AYNI_AD)
@@ -65,7 +65,7 @@ def ekle(veri: ShelfIn, user: User = Depends(get_current_user), db: Session = De
     return _cikti(db, raf)
 
 
-@router.put("/{raf_id}", response_model=ShelfOut)
+@router.put("/{raf_id}", response_model=ShelfOut, summary="Rafı yeniden adlandır")
 def guncelle(
     raf_id: int, veri: ShelfIn, user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ) -> ShelfOut:
@@ -78,7 +78,7 @@ def guncelle(
     return _cikti(db, raf)
 
 
-@router.delete("/{raf_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{raf_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Rafı sil")
 def sil(raf_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> Response:
     """Rafı siler; raftaki kitaplar silinmez, rafsız kalır."""
     db.delete(_kendi_rafi(raf_id, user, db))

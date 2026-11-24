@@ -1,8 +1,15 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+
+// Release imzası: android/key.properties (depoya girmez) varsa kendi anahtarımızla imzalanır,
+// yoksa (ör. ortağın bilgisayarı, CI) debug anahtarıyla; böylece herkes derleyebilir.
+val imzaDosyasi = rootProject.file("key.properties")
+val imza = Properties().apply { if (imzaDosyasi.exists()) imzaDosyasi.inputStream().use { load(it) } }
 
 android {
     namespace = "com.kitapligim.kitapligim"
@@ -29,11 +36,21 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        if (imzaDosyasi.exists()) {
+            create("release") {
+                storeFile = rootProject.file(imza.getProperty("storeFile"))
+                storePassword = imza.getProperty("storePassword")
+                keyAlias = imza.getProperty("keyAlias")
+                keyPassword = imza.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig =
+                if (imzaDosyasi.exists()) signingConfigs.getByName("release") else signingConfigs.getByName("debug")
         }
     }
 }

@@ -25,10 +25,13 @@ class RolluAuthRepository implements AuthRepository {
   final String rol;
 
   @override
-  Future<GirisSonucu> giris(String email, String sifre) async => throw UnimplementedError();
+  Future<GirisSonucu> giris(String email, String sifre, {bool beniHatirla = false}) async => throw UnimplementedError();
 
   @override
   Future<void> kayit(String ad, String email, String sifre) async {}
+
+  @override
+  Future<void> cikis(String yenileme) async {}
 
   @override
   Future<Kullanici> ben() async => Kullanici(id: 7, email: 'kisi@ornek.com', ad: 'Kişi', rol: rol);
@@ -73,7 +76,7 @@ Future<Ortam> ac(
 }
 
 Future<void> yonetimAc(WidgetTester tester) async {
-  await tester.tap(find.byKey(const Key('yonetici_karti')));
+  await tester.tap(find.byKey(const Key('nav_yonetim')));
   await tester.pumpAndSettle();
 }
 
@@ -157,7 +160,7 @@ void main() {
 
   testWidgets('normal kullanıcı yönetim kartını görmez; adresi açmaya çalışsa ana sayfada kalır', (tester) async {
     await ac(tester, rol: 'user');
-    expect(find.byKey(const Key('yonetici_karti')), findsNothing);
+    expect(find.byKey(const Key('nav_yonetim')), findsNothing);
 
     GoRouter.of(tester.element(find.byType(HomeScreen))).go('/yonetim/kategoriler');
     await tester.pumpAndSettle();

@@ -14,7 +14,7 @@ def test_health_veritabani_baglantisi_calisir():
 
 
 def test_beklenen_tablolar_tanimli():
-    assert set(Base.metadata.tables) == {"users", "categories", "shelves", "books", "loans"}
+    assert set(Base.metadata.tables) == {"users", "categories", "shelves", "books", "loans", "refresh_tokens"}
 
 
 def test_kitap_durumu_ve_puan_kisitlari_var():

@@ -5,6 +5,10 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 class RegisterIn(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={"examples": [{"email": "ayse@ornek.com", "password": "uzun-bir-sifre", "display_name": "Ayşe"}]}
+    )
+
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
     display_name: str = Field(min_length=1, max_length=100)
@@ -30,7 +34,22 @@ class UserOut(BaseModel):
 class TokenOut(BaseModel):
     access_token: str
     token_type: str = "bearer"
+    expires_in: int = Field(description="Erişim token'ının ömrü (saniye)")
+    refresh_token: str = Field(description="Erişim token'ı dolunca /auth/refresh ile yenisini almak için")
     user: UserOut
+
+
+class KitapOzeti(BaseModel):
+    toplam: int
+    okunacak: int
+    okunuyor: int
+    okundu: int
+
+
+class RefreshIn(BaseModel):
+    model_config = ConfigDict(json_schema_extra={"examples": [{"refresh_token": "girişte dönen refresh_token değeri"}]})
+
+    refresh_token: str = Field(min_length=1, max_length=200)
 
 
 # ---------- Kitaplar (Hafta 3) ----------
@@ -61,6 +80,25 @@ def isbn_normalize(v: str | None) -> str | None:
 
 class BookIn(BaseModel):
     """Kitap ekleme ve güncelleme (PUT tüm alanları yeniden yazar)."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "title": "Kürk Mantolu Madonna",
+                    "author": "Sabahattin Ali",
+                    "publisher": "YKY",
+                    "year": 1943,
+                    "pages": 160,
+                    "status": "okundu",
+                    "rating": 5,
+                    "note": "Raif Efendi'nin defteri.",
+                    "category_id": None,
+                    "shelf_id": None,
+                }
+            ]
+        }
+    )
 
     title: str = Field(max_length=255)
     author: str = Field(max_length=255)
@@ -125,6 +163,8 @@ class BookOut(BaseModel):
 class CategoryIn(BaseModel):
     """Kategori ekleme ve güncelleme; yalnızca yönetici gönderebilir."""
 
+    model_config = ConfigDict(json_schema_extra={"examples": [{"name": "Roman", "description": "Uzun anlatı türü"}]})
+
     name: str = Field(max_length=100)
     description: str | None = Field(default=None, max_length=1000)
 
@@ -154,6 +194,8 @@ class CategoryOut(BaseModel):
 
 class ShelfIn(BaseModel):
     """Raf ekleme ve yeniden adlandırma; raf yalnızca sahibine aittir."""
+
+    model_config = ConfigDict(json_schema_extra={"examples": [{"name": "Salon"}]})
 
     name: str = Field(max_length=100)
 

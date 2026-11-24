@@ -4,12 +4,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/api_client.dart';
 import 'kullanici.dart';
 
-/// Giriş sonucu: oturum anahtarı ve kullanıcı.
+/// Giriş sonucu: erişim token'ı, yenileme token'ı ve kullanıcı.
 class GirisSonucu {
-  const GirisSonucu(this.token, this.kullanici);
+  const GirisSonucu(this.token, this.kullanici, {this.yenileme});
 
   final String token;
   final Kullanici kullanici;
+  final String? yenileme;
 }
 
 /// Kimlik uçlarıyla konuşan katman. Ekranlar Dio'yu doğrudan görmez.
@@ -18,15 +19,20 @@ class AuthRepository {
 
   final Dio _dio;
 
-  Future<GirisSonucu> giris(String email, String sifre) async {
+  /// [beniHatirla] sunucuya da gider: işaretliyse yenileme token'ı 30 gün, değilse 12 saat geçerli.
+  Future<GirisSonucu> giris(String email, String sifre, {bool beniHatirla = false}) async {
     try {
       final yanit = await _dio.post<Map<String, dynamic>>(
         '/auth/login',
-        data: {'username': email.trim(), 'password': sifre},
+        data: {'username': email.trim(), 'password': sifre, 'remember_me': beniHatirla ? 'true' : 'false'},
         options: Options(contentType: Headers.formUrlEncodedContentType),
       );
       final veri = yanit.data!;
-      return GirisSonucu(veri['access_token'] as String, Kullanici.fromJson(veri['user'] as Map<String, dynamic>));
+      return GirisSonucu(
+        veri['access_token'] as String,
+        Kullanici.fromJson(veri['user'] as Map<String, dynamic>),
+        yenileme: veri['refresh_token'] as String?,
+      );
     } on DioException catch (e) {
       throw apiHatasinaCevir(e);
     }
@@ -49,6 +55,15 @@ class AuthRepository {
       return Kullanici.fromJson(yanit.data!);
     } on DioException catch (e) {
       throw apiHatasinaCevir(e);
+    }
+  }
+
+  /// Sunucudaki yenileme token'ını iptal eder. Ağ hatası çıkışı engellemez.
+  Future<void> cikis(String yenileme) async {
+    try {
+      await _dio.post<void>('/auth/logout', data: {'refresh_token': yenileme});
+    } on DioException {
+      // Çıkış yerelde zaten tamamlandı; sunucuya ulaşılamazsa token kendi süresinde ölür.
     }
   }
 }

@@ -30,7 +30,7 @@ def _bul(db: Session, kategori_id: int) -> Category:
     return kategori
 
 
-@router.get("", response_model=list[CategoryOut])
+@router.get("", response_model=list[CategoryOut], summary="Kategorileri listele")
 def listele(user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> list[CategoryOut]:
     """Tüm kategoriler (giriş yapan herkes görür), Türkçe alfabe sırasıyla; kitap sayısıyla birlikte."""
     adetler = dict(db.execute(select(Book.category_id, func.count()).group_by(Book.category_id)).all())
@@ -41,7 +41,7 @@ def listele(user: User = Depends(get_current_user), db: Session = Depends(get_db
     ]
 
 
-@router.post("", response_model=CategoryOut, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=CategoryOut, status_code=status.HTTP_201_CREATED, summary="Kategori ekle (yönetici)")
 def ekle(veri: CategoryIn, admin: User = Depends(require_admin), db: Session = Depends(get_db)) -> CategoryOut:
     if _ayni_ad_var_mi(db, veri.name):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Bu adda bir kategori zaten var")
@@ -56,7 +56,7 @@ def ekle(veri: CategoryIn, admin: User = Depends(require_admin), db: Session = D
     return _cikti(db, kategori)
 
 
-@router.put("/{kategori_id}", response_model=CategoryOut)
+@router.put("/{kategori_id}", response_model=CategoryOut, summary="Kategoriyi güncelle (yönetici)")
 def guncelle(
     kategori_id: int, veri: CategoryIn, admin: User = Depends(require_admin), db: Session = Depends(get_db)
 ) -> CategoryOut:
@@ -74,7 +74,7 @@ def guncelle(
     return _cikti(db, kategori)
 
 
-@router.delete("/{kategori_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{kategori_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Kategoriyi sil (yönetici)")
 def sil(kategori_id: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)) -> Response:
     """Kategoriyi siler; bu kategorideki kitaplar silinmez, kategorisiz kalır."""
     kategori = _bul(db, kategori_id)

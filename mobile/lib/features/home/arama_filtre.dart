@@ -88,6 +88,20 @@ class _AramaVeFiltreState extends ConsumerState<AramaVeFiltre> {
               secenekler: [for (final r in raflar) (r.id, r.ad, 'filtre_raf_${r.id}')],
               secildi: denetleyici.rafSec,
             ),
+            PopupMenuButton<KitapSiralama>(
+              key: const Key('siralama'),
+              tooltip: 'Sıralama',
+              initialValue: filtre.siralama,
+              onSelected: denetleyici.siralamaSec,
+              itemBuilder: (_) => [
+                for (final s in KitapSiralama.values)
+                  PopupMenuItem(key: Key('siralama_${s.name}'), value: s, child: Text(s.etiket)),
+              ],
+              child: Chip(
+                avatar: const Icon(Icons.sort, size: 18),
+                label: Text(filtre.siralama.etiket),
+              ),
+            ),
             if (!filtre.bosMu)
               ActionChip(
                 key: const Key('filtre_temizle'),

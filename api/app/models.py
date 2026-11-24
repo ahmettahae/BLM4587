@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from sqlalchemy import CheckConstraint, ForeignKey, String, Text, UniqueConstraint, func
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -21,6 +21,7 @@ class User(Base):
 
     books: Mapped[list["Book"]] = relationship(back_populates="owner", cascade="all, delete-orphan")
     shelves: Mapped[list["Shelf"]] = relationship(back_populates="owner", cascade="all, delete-orphan")
+    refresh_tokens: Mapped[list["RefreshToken"]] = relationship(cascade="all, delete-orphan")
 
 
 class Category(Base):
@@ -76,6 +77,24 @@ class Book(Base):
     category: Mapped[Category | None] = relationship(back_populates="books")
     shelf: Mapped[Shelf | None] = relationship(back_populates="books")
     loans: Mapped[list["Loan"]] = relationship(back_populates="book", cascade="all, delete-orphan")
+
+
+class RefreshToken(Base):
+    """Uzun ömürlü oturum yenileme anahtarı. Anahtarın kendisi değil SHA-256 özeti saklanır."""
+
+    __tablename__ = "refresh_tokens"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    remember_me: Mapped[bool] = mapped_column(default=False, server_default="false")
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # True: yenilemeyle döndürüldü (tekrar gelirse çalınma şüphesi); False: çıkışla iptal edildi.
+    rotated: Mapped[bool] = mapped_column(default=False, server_default="false")
+    # Döndürülmüş token'ın 30 sn'lik tek seferlik tekrar hakkı kullanıldı mı (ya da çalınmayla kapandı mı).
+    tolerans_kullanildi: Mapped[bool] = mapped_column(default=False, server_default="false")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class Loan(Base):

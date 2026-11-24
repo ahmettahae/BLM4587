@@ -44,7 +44,9 @@ def test_liste_turkce_alfabe_sirasinda(client, yonetici_oturumu, kategori_adi):
     yonetici = yonetici_oturumu()
     for ad in ["Şiir", "Roman", "Çocuk", "Bilim", "Ömür"]:
         assert client.post("/categories", json={"name": kategori_adi(ad)}, headers=yonetici).status_code == 201
-    liste = [k["name"].removeprefix(kategori_adi("")) for k in client.get("/categories", headers=yonetici).json()]
+    # Yalnız bu testin önekli kategorilerine bak; veritabanında gerçek "Roman" gibi kategoriler de olabilir.
+    onek = kategori_adi("")
+    liste = [k["name"].removeprefix(onek) for k in client.get("/categories", headers=yonetici).json() if k["name"].startswith(onek)]
     sirali = [ad for ad in liste if ad in {"Şiir", "Roman", "Çocuk", "Bilim", "Ömür"}]
     assert sirali == ["Bilim", "Çocuk", "Ömür", "Roman", "Şiir"]
 

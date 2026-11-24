@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Uygulamanın ana rengi (lib/core/tema.dart içindeki anaRenk ile aynı). -->
+    <color name="ikon_zemini">#2E6B57</color>
+</resources>

@@ -17,6 +17,18 @@ def client():
 
 
 @pytest.fixture(autouse=True)
+def giris_sayaclarini_temizle():
+    """Hatalı giriş sayaçları bellekte; testler birbirini kilitlemesin."""
+    from app import giris_siniri
+
+    giris_siniri._hatalar.clear()
+    giris_siniri._ip_hatalar.clear()
+    yield
+    giris_siniri._hatalar.clear()
+    giris_siniri._ip_hatalar.clear()
+
+
+@pytest.fixture(autouse=True)
 def test_kullanicilarini_temizle():
     """Her testten sonra bu testlerin oluşturduğu kullanıcıları siler (gerçek veriye dokunmaz)."""
     yield

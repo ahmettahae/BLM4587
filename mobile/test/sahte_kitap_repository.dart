@@ -41,11 +41,18 @@ class SahteKitapRepository implements KitapRepository {
   /// Son liste isteğinin filtresi (testler sunucuya ne gittiğini görsün diye).
   KitapFiltresi? sonFiltre;
 
-  @override
-  Future<List<Kitap>> listele([KitapFiltresi filtre = const KitapFiltresi()]) async {
-    sonFiltre = filtre;
+  /// Kaç sayfa istendiği (sonsuz kaydırmayı görmek için).
+  final List<int> istenenOffsetler = [];
+
+  /// Doluysa bir sonraki liste isteği bu mesajla başarısız olur.
+  String? sonrakiListeHatasi;
+
+  /// Doluysa (null yapılana kadar) bütün liste istekleri bu mesajla, bağlantı hatası gibi başarısız olur.
+  String? kaliciListeHatasi;
+
+  List<Kitap> _suz(KitapFiltresi filtre) {
     final aranan = filtre.arama.trim().toLowerCase();
-    return [
+    final liste = [
       for (final k in _kitaplar)
         if ((filtre.durum == null || k.durum == filtre.durum) &&
             (filtre.kategoriId == null || k.kategoriId == filtre.kategoriId) &&
@@ -54,7 +61,42 @@ class SahteKitapRepository implements KitapRepository {
                 [k.baslik, k.yazar, k.isbn ?? ''].any((alan) => alan.toLowerCase().contains(aranan))))
           k,
     ];
+    switch (filtre.siralama) {
+      case KitapSiralama.yeni:
+        break;
+      case KitapSiralama.eski:
+        return liste.reversed.toList();
+      case KitapSiralama.baslik:
+        liste.sort((a, b) => a.baslik.toLowerCase().compareTo(b.baslik.toLowerCase()));
+      case KitapSiralama.yazar:
+        liste.sort((a, b) => a.yazar.toLowerCase().compareTo(b.yazar.toLowerCase()));
+      case KitapSiralama.puan:
+        liste.sort((a, b) => (b.puan ?? 0).compareTo(a.puan ?? 0));
+    }
+    return liste;
   }
+
+  @override
+  Future<KitapSayfasi> sayfa(KitapFiltresi filtre, {int offset = 0, int limit = KitapRepository.sayfaBoyutu}) async {
+    sonFiltre = filtre;
+    istenenOffsetler.add(offset);
+    if (kaliciListeHatasi != null) throw ApiHata(kaliciListeHatasi!);
+    final hata = sonrakiListeHatasi;
+    if (hata != null) {
+      sonrakiListeHatasi = null;
+      throw ApiHata(hata);
+    }
+    final hepsi = _suz(filtre);
+    return KitapSayfasi(hepsi.skip(offset).take(limit).toList(), hepsi.length);
+  }
+
+  @override
+  Future<KitapOzeti> ozet() async => KitapOzeti(
+        toplam: _kitaplar.length,
+        okunacak: _kitaplar.where((k) => k.durum == KitapDurumu.okunacak).length,
+        okunuyor: _kitaplar.where((k) => k.durum == KitapDurumu.okunuyor).length,
+        okundu: _kitaplar.where((k) => k.durum == KitapDurumu.okundu).length,
+      );
 
   @override
   Future<Kitap> getir(int id) async =>

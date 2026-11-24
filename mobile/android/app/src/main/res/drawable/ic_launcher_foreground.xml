@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Kitaplığım ikonu: açık kitap ve kehribar ayraç (108x108; görünür alan ortadaki 66x66). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- sol sayfa -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,39 C38,35 46,36 53,40 L53,75 C46,71 38,70 30,74 Z" />
+    <!-- sağ sayfa -->
+    <path
+        android:fillColor="#F3EFE6"
+        android:pathData="M55,40 C62,36 70,35 78,39 L78,74 C70,70 62,71 55,75 Z" />
+    <!-- satırlar -->
+    <path
+        android:strokeColor="#9FB8AE"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:pathData="M35,48 C40,46 44,46.5 48,48.5 M35,55 C40,53 44,53.5 48,55.5 M35,62 C40,60 44,60.5 48,62.5" />
+    <!-- ayraç -->
+    <path
+        android:fillColor="#F2B544"
+        android:pathData="M66,37.2 L72,36.6 L72,52 L69,49 L66,52 Z" />
+</vector>

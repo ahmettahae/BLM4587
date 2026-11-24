@@ -85,6 +85,21 @@ class KitapGirdisi {
   final int? kategoriId;
   final int? rafId;
 
+  /// Var olan kitabın bilgileriyle girdi (silmeyi geri almak için).
+  factory KitapGirdisi.kitaptan(Kitap k) => KitapGirdisi(
+        baslik: k.baslik,
+        yazar: k.yazar,
+        isbn: k.isbn,
+        yayinevi: k.yayinevi,
+        yil: k.yil,
+        sayfa: k.sayfa,
+        not: k.not,
+        durum: k.durum,
+        puan: k.puan,
+        kategoriId: k.kategoriId,
+        rafId: k.rafId,
+      );
+
   Map<String, dynamic> toJson() => {
         'title': baslik,
         'author': yazar,

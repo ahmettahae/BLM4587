@@ -1,3 +1,5 @@
+import hashlib
+import secrets
 from datetime import datetime, timedelta, timezone
 
 import jwt
@@ -25,7 +27,19 @@ def verify_password(password: str, password_hash: str) -> bool:
 def create_access_token(user_id: int) -> str:
     """Kullanıcı numarasını ve bitiş zamanını içeren imzalı JWT üretir."""
     bitis = datetime.now(timezone.utc) + timedelta(minutes=settings.jwt_expire_minutes)
-    return jwt.encode({"sub": str(user_id), "exp": bitis}, settings.jwt_secret, algorithm=ALGORITHM)
+    # jti: her token tekil olsun (aynı saniyede üretilen iki token bile farklıdır).
+    yuk = {"sub": str(user_id), "exp": bitis, "jti": secrets.token_hex(8)}
+    return jwt.encode(yuk, settings.jwt_secret, algorithm=ALGORITHM)
+
+
+def yeni_refresh_token() -> str:
+    """Tahmin edilemez, URL'de güvenli rastgele yenileme anahtarı."""
+    return secrets.token_urlsafe(48)
+
+
+def refresh_ozeti(token: str) -> str:
+    """Veritabanında yenileme anahtarının kendisi yerine bu SHA-256 özeti saklanır."""
+    return hashlib.sha256(token.encode()).hexdigest()
 
 
 def decode_access_token(token: str) -> int | None:

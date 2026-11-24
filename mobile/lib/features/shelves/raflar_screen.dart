@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/api_client.dart';
 import '../../core/dogrulama.dart';
+import '../../core/gorunum.dart';
 import '../books/kitap_filtresi.dart';
 import 'raf.dart';
 import 'raflar_controller.dart';
@@ -66,24 +67,24 @@ class RaflarScreen extends ConsumerWidget {
                 children: const [Padding(padding: EdgeInsets.all(48), child: Center(child: CircularProgressIndicator()))],
               ),
               error: (e, _) => ListView(
-                padding: const EdgeInsets.all(24),
                 children: [
-                  Text('$e', key: const Key('raf_liste_hata'), textAlign: TextAlign.center),
-                  TextButton(
-                    onPressed: () => ref.read(raflarProvider.notifier).yenile(),
-                    child: const Text('Tekrar dene'),
+                  HataDurumu(
+                    key: const Key('raf_liste_hata'),
+                    baslik: 'Raflar yüklenemedi',
+                    hata: e,
+                    tekrarDene: () => ref.read(raflarProvider.notifier).yenile(),
                   ),
                 ],
               ),
               data: (liste) => liste.isEmpty
                   ? ListView(
                       physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(32),
                       children: const [
-                        Text(
-                          'Henüz raf yok. "Raf ekle" ile ilk rafını oluştur.',
+                        BosDurum(
                           key: Key('raf_liste_bos'),
-                          textAlign: TextAlign.center,
+                          ikon: Icons.shelves,
+                          baslik: 'Henüz raf yok',
+                          mesaj: '"Raf ekle" ile ilk rafını oluştur; kitaplarını raflara yerleştir.',
                         ),
                       ],
                     )
@@ -113,9 +114,9 @@ class _RafKarti extends ConsumerWidget {
         leading: const Icon(Icons.shelves),
         title: Text(raf.ad),
         subtitle: Text('${raf.kitapSayisi} kitap'),
-        // Rafa dokununca ana sayfa bu rafın kitaplarıyla açılır.
+        // Rafa dokununca Kitaplar sekmesi yalnız bu rafın kitaplarıyla açılır.
         onTap: () {
-          ref.read(kitapFiltresiProvider.notifier).rafSec(raf.id);
+          ref.read(kitapFiltresiProvider.notifier).yalnizRaf(raf.id);
           context.go('/');
         },
         trailing: Row(

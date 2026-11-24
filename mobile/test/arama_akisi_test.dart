@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kitapligim/features/books/kitap.dart';
 import 'package:kitapligim/features/shelves/raf.dart';
 
-import 'raf_akisi_test.dart' show rafAc, raflarAc;
+import 'raf_akisi_test.dart' show kitaplaraDon, rafAc, raflarAc;
 
 const _kitaplar = [
   Kitap(id: 1, baslik: 'Tutunamayanlar', yazar: 'Oğuz Atay', durum: KitapDurumu.okundu, rafId: 1),
@@ -95,8 +95,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('raf_silme_onay')));
     await tester.pumpAndSettle();
-    await tester.pageBack();
-    await tester.pumpAndSettle();
+    await kitaplaraDon(tester);
     expect(find.textContaining('Raf: '), findsNothing);
     expect(find.byKey(const Key('kitap_2')), findsOneWidget);
     expect(find.byKey(const Key('kitap_liste_filtre_bos')), findsNothing);

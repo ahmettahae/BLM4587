@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/api_client.dart';
 import '../../core/dogrulama.dart';
+import '../../core/gorunum.dart';
 import 'kategori.dart';
 import 'kategoriler_controller.dart';
 
@@ -64,24 +65,24 @@ class KategoriYonetimScreen extends ConsumerWidget {
                 children: const [Padding(padding: EdgeInsets.all(48), child: Center(child: CircularProgressIndicator()))],
               ),
               error: (e, _) => ListView(
-                padding: const EdgeInsets.all(24),
                 children: [
-                  Text('$e', key: const Key('kategori_liste_hata'), textAlign: TextAlign.center),
-                  TextButton(
-                    onPressed: () => ref.read(kategorilerProvider.notifier).yenile(),
-                    child: const Text('Tekrar dene'),
+                  HataDurumu(
+                    key: const Key('kategori_liste_hata'),
+                    baslik: 'Kategoriler yüklenemedi',
+                    hata: e,
+                    tekrarDene: () => ref.read(kategorilerProvider.notifier).yenile(),
                   ),
                 ],
               ),
               data: (liste) => liste.isEmpty
                   ? ListView(
                       physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(32),
                       children: const [
-                        Text(
-                          'Henüz kategori yok. "Kategori ekle" ile ilkini oluştur.',
+                        BosDurum(
                           key: Key('kategori_liste_bos'),
-                          textAlign: TextAlign.center,
+                          ikon: Icons.label_outline,
+                          baslik: 'Henüz kategori yok',
+                          mesaj: '"Kategori ekle" ile ilkini oluştur.',
                         ),
                       ],
                     )

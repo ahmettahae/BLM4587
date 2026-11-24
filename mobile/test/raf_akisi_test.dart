@@ -18,10 +18,13 @@ import 'sahte_raf_repository.dart';
 
 class _OturumluAuth implements AuthRepository {
   @override
-  Future<GirisSonucu> giris(String email, String sifre) async => throw UnimplementedError();
+  Future<GirisSonucu> giris(String email, String sifre, {bool beniHatirla = false}) async => throw UnimplementedError();
 
   @override
   Future<void> kayit(String ad, String email, String sifre) async {}
+
+  @override
+  Future<void> cikis(String yenileme) async {}
 
   @override
   Future<Kullanici> ben() async => const Kullanici(id: 7, email: 'okur@ornek.com', ad: 'Okur', rol: 'user');
@@ -67,8 +70,17 @@ Future<RafOrtami> rafAc(
   return ortam;
 }
 
+/// Raflar sekmesini gezinme çubuğundan açar.
 Future<void> raflarAc(WidgetTester tester) async {
-  await tester.tap(find.byKey(const Key('raflar_karti')));
+  final sekme = find.byKey(const Key('nav_raflar'));
+  await tester.tap(sekme);
+  await tester.pumpAndSettle();
+}
+
+/// Kitap listesine döner (gezinme çubuğu varsa Kitaplar sekmesi, yoksa geri düğmesi).
+Future<void> kitaplaraDon(WidgetTester tester) async {
+  final sekme = find.byKey(const Key('nav_kitaplar'));
+  await tester.tap(sekme.evaluate().isNotEmpty ? sekme : find.byType(BackButton));
   await tester.pumpAndSettle();
 }
 
@@ -225,7 +237,6 @@ void main() {
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
     await rafAc(tester, uzunEkran: false);
-    await tester.ensureVisible(find.byKey(const Key('raflar_karti')));
     await raflarAc(tester);
     await tester.tap(find.byKey(const Key('raf_ekle_buton')));
     await tester.pumpAndSettle();
